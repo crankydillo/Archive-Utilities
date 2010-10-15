@@ -18,8 +18,11 @@
 */
 package org.beeherd.zip
 
+import java.io.File
 import java.util.regex.Pattern
 import java.util.zip.ZipFile
+
+import org.apache.commons.io.FileUtils
 
 import org.specs._
 import org.specs.runner.JUnit4
@@ -47,6 +50,28 @@ object ZipSpec extends Specification {
     "spit out the text of an entry" in {
       // newline because windows/unix thing
       zip.entryAsString("dir1/foo.txt") must beEqual("foo\n");
+    }
+
+    "explode a zip to some directory" in {
+      val dir = File.createTempFile("zip-tst", "dir");
+      dir.delete();
+      dir.mkdir();
+      try {
+        zip.explode(dir);
+        val f = new File(dir, "foo.txt");
+        f must exist;
+        f must beFile;
+        FileUtils.readFileToString(f) must beEqual("hi from foo\n");
+        new File(dir, "dir2") must beDirectory;
+      } finally {
+        if (dir.isDirectory)
+          FileUtils.deleteDirectory(dir);
+        else
+          dir.delete();
+      }
+    }
+
+    "throw an IllegalArgumentException if the target directory exists but is not a directory" in {
     }
   }
 }

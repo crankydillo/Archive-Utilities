@@ -38,10 +38,17 @@ trait Archive {
   def entryNames: List[String]
 
   /**
-   * Return the contents of an entry as a string
+   * Return the contents of an entry as a string.
    */
   def entryAsString(name: String, encoding: String): String
+
+  /**
+   * Explode the archive into the given directory.
+   */
+  def explode(dir: File): Unit
 }
+
+import java.io.{BufferedOutputStream, FileOutputStream}
 
 import org.apache.commons.io.IOUtils
 
@@ -67,6 +74,25 @@ class Zip(zipFile: ZipFile) extends Archive {
       IOUtils.toString(in, encoding)
     } finally {
       try { in.close } catch { case e:Exception => /* TODO: Log */ e.printStackTrace}
+    }
+  }
+
+  def explode(dir: File): Unit = {
+    require(!dir.exists || dir.isDirectory);
+
+    val entries = zipFile.entries;
+    entries.foreach {e =>
+      val newFile = new File(dir, e.getName);
+      if (e.isDirectory) {
+        newFile.mkdirs();
+      } else {
+        val out = new BufferedOutputStream(new FileOutputStream(newFile));
+        try {
+          IOUtils.copy(zipFile.getInputStream(e), out);
+        } finally {
+          out.close();
+        }
+      }
     }
   }
 }
