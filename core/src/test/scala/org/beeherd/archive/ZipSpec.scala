@@ -73,5 +73,17 @@ object ZipSpec extends Specification {
 
     "throw an IllegalArgumentException if the target directory exists but is not a directory" in {
     }
+
+    "add a file at the root level of a zip" in {
+    }
+
+    "add a file into some directory within a zip" in {
+    }
+
+    "add a directory at the root level of a zip" in {
+    }
+
+    "throw an IllegalArgumentException if the path supplied does not point to either the root level or some directory of the zip" in {
+    }
   }
 }

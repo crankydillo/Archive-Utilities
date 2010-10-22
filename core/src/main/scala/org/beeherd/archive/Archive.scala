@@ -46,6 +46,12 @@ trait Archive {
    * Explode the archive into the given directory.
    */
   def explode(dir: File): Unit
+
+  /**
+   * Add the file to the archive using the path as a pointer
+   * to a directory within the archive.
+   */
+   def add(f: File, path: String): Unit
 }
 
 import java.io.{BufferedOutputStream, FileOutputStream}
@@ -94,6 +100,9 @@ class Zip(zipFile: ZipFile) extends Archive {
         }
       }
     }
+  }
+
+  def add(f: File, path: String = "."): Unit = {
   }
 }
 
