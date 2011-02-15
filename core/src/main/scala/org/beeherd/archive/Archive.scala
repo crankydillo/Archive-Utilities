@@ -16,11 +16,10 @@
 * specific language governing permissions and limitations
 * under the License.
 */
-package org.beeherd.zip
+package org.beeherd.archive
 
 import java.io.File
 import java.util.regex._
-import java.util.zip._
 
 /**
  *
@@ -46,57 +45,4 @@ trait Archive {
    * Explode the archive into the given directory.
    */
   def explode(dir: File): Unit
-}
-
-import java.io.{BufferedOutputStream, FileOutputStream}
-
-import org.apache.commons.io.IOUtils
-
-/**
- *
- * @author scox
- */
-class Zip(zipFile: ZipFile) extends Archive {
-  import scala.collection.JavaConversions._
-
-  def entryNames(pattern: Pattern): List[String] = 
-    entryNames.filter {e => pattern.matcher(e).matches}
-
-  def entryNames: List[String] = zipFile.entries.map {_.getName}.toList
-
-  def entryAsString(
-    name: String
-    , encoding: String = Zip.DefaultEncoding
-  ): String = {
-    val entry = zipFile.getEntry(name);
-    val in = zipFile.getInputStream(entry);
-    try {
-      IOUtils.toString(in, encoding)
-    } finally {
-      try { in.close } catch { case e:Exception => /* TODO: Log */ e.printStackTrace}
-    }
-  }
-
-  def explode(dir: File): Unit = {
-    require(!dir.exists || dir.isDirectory);
-
-    val entries = zipFile.entries;
-    entries.foreach {e =>
-      val newFile = new File(dir, e.getName);
-      if (e.isDirectory) {
-        newFile.mkdirs();
-      } else {
-        val out = new BufferedOutputStream(new FileOutputStream(newFile));
-        try {
-          IOUtils.copy(zipFile.getInputStream(e), out);
-        } finally {
-          out.close();
-        }
-      }
-    }
-  }
-}
-
-object Zip {
-  val DefaultEncoding = System.getProperty("file.encoding")
 }

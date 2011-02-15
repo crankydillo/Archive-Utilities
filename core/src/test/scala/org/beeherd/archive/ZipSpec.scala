@@ -16,7 +16,7 @@
 * specific language governing permissions and limitations
 * under the License.
 */
-package org.beeherd.zip
+package org.beeherd.archive
 
 import java.io.File
 import java.util.regex.Pattern

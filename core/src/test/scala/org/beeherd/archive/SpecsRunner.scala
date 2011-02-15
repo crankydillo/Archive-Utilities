@@ -16,7 +16,7 @@
 * specific language governing permissions and limitations
 * under the License.
 */
-package org.beeherd.zip
+package org.beeherd.archive
 
 import org.specs._
 import org.specs.runner.JUnit4
