@@ -1,11 +1,9 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements. See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership. The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-  * "License"); you may not use this file except in compliance
-* with the License. You may obtain a copy of the License at
+* Copyright 2010 Samuel Cox
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
 *
 * http://www.apache.org/licenses/LICENSE-2.0
 *
@@ -72,6 +70,18 @@ object ZipSpec extends Specification {
     }
 
     "throw an IllegalArgumentException if the target directory exists but is not a directory" in {
+    }
+
+    "add a file at the root level of a zip" in {
+    }
+
+    "add a file into some directory within a zip" in {
+    }
+
+    "add a directory at the root level of a zip" in {
+    }
+
+    "throw an IllegalArgumentException if the path supplied does not point to either the root level or some directory of the zip" in {
     }
   }
 }
