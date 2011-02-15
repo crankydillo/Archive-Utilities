@@ -28,7 +28,7 @@ import org.apache.commons.io.IOUtils
  *
  * @author scox
  */
-class Zip(zipFile: ZipFile) extends Archive {
+class Zip(val zipFile: ZipFile) extends Archive {
   import scala.collection.JavaConversions._
 
   def entryNames(pattern: Pattern): List[String] = 
@@ -79,6 +79,22 @@ class Zip(zipFile: ZipFile) extends Archive {
 
 object Zip {
   val DefaultEncoding = System.getProperty("file.encoding");
+
+  def use[T](file: File)(f: Zip => T): T = {
+    require(file != null && file.isFile);
+    val zipFile = new ZipFile(file);
+    try {
+      val zip = new Zip(zipFile);
+      f(zip)
+    } finally {
+      try {zipFile.close();} catch { case e:Exception => {}}
+    }
+  }
+
+  def explode(file: File, dir: File): Unit = {
+    require(file != null && file.isFile && dir != null && dir.isDirectory);
+    use(file) { _.explode(dir) }
+  }
 
   /**
    * Create a zip from some directory.

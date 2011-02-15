@@ -27,7 +27,8 @@ import org.specs.runner.JUnit4
         
 class ZipSpecTest extends JUnit4(ZipSpec)
 object ZipSpec extends Specification {
-  val zipFile = new ZipFile(getClass.getResource("/foo.zip").getFile);
+  val file = new File(getClass.getResource("/foo.zip").getFile);
+  val zipFile = new ZipFile(file);
   val zip = new Zip(zipFile);
 
   "Zip" should {
@@ -82,6 +83,27 @@ object ZipSpec extends Specification {
     }
 
     "throw an IllegalArgumentException if the path supplied does not point to either the root level or some directory of the zip" in {
+    }
+  }
+
+  "The Zip object" should {
+    "explode a file (that is a zip) to some directory" in {
+      val dir = File.createTempFile("zip-tst2", "dir");
+      dir.delete();
+      dir.mkdir();
+      try {
+        Zip.explode(file, dir);
+        val f = new File(dir, "foo.txt");
+        f must exist;
+        f must beFile;
+        FileUtils.readFileToString(f) must beEqual("hi from foo\n");
+        new File(dir, "dir2") must beDirectory;
+      } finally {
+        if (dir.isDirectory)
+          FileUtils.deleteDirectory(dir);
+        else
+          dir.delete();
+      }
     }
   }
 }
