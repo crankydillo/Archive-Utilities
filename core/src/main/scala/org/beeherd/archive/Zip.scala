@@ -18,11 +18,13 @@
 */
 package org.beeherd.archive
 
-import java.io.{BufferedOutputStream, File, FileOutputStream}
+import java.io.{BufferedOutputStream, File, FileInputStream, FileOutputStream}
 import java.util.regex._
 import java.util.zip._
 
-import org.apache.commons.io.IOUtils
+import org.apache.commons.io.{FileUtils, IOUtils}
+
+import org.beeherd.io.TempDir
 
 /**
  *
@@ -66,6 +68,10 @@ class Zip(val zipFile: ZipFile) extends Archive {
       if (e.isDirectory) {
         newFile.mkdirs();
       } else {
+        val dir = newFile.getParentFile();
+        if (dir != null && !dir.exists)
+          dir.mkdirs();
+        newFile.createNewFile();
         val out = new BufferedOutputStream(new FileOutputStream(newFile));
         try {
           IOUtils.copy(zipFile.getInputStream(e), out);
@@ -92,44 +98,71 @@ object Zip {
   }
 
   def explode(file: File, dir: File): Unit = {
-    require(file != null && file.isFile && dir != null && dir.isDirectory);
+    require(file != null && file.isFile)
+    require(dir != null && dir.isDirectory);
     use(file) { _.explode(dir) }
   }
 
   /**
-   * Create a zip from some directory.
-  def archive(name: String, d: File = new File("."), overwrite: Boolean = false): File = {
-    require(name != null && name.trim.size > 0);
-    val target = new File(d, name);
-    if (target.exists && !overwrite)
+   * Create a zip from some files.
+   * 
+   */
+  def archive(
+      target: File
+      , overwrite: Boolean = false
+      , dir: File
+    ): File = {
+
+    require(dir != null && dir.exists);
+    require(dir.isDirectory);
+
+    if (target.exists && !overwrite) {
       throw new IllegalArgumentException(target.getAbsolutePath + " already exists " +
       "and overwrite is set to false.");
+    } else if (target.exists) {
+      FileUtils.forceDelete(target);
+    }
 
+    target.createNewFile();
+
+    write(target) {out =>
+      def write(f: File, path: String): Unit = {
+        if (f.isFile) {
+          val zipEntry = new ZipEntry(path + f.getName);
+          out.putNextEntry(zipEntry);
+          val in = new FileInputStream(f);
+          try {
+            IOUtils.copy(in, out);
+          } finally {
+            try { in.close } catch {case e:Exception => {}}
+          }
+          out.closeEntry();
+        } else {
+          val newPath = path + "/" + f.getName + "/";
+          val zipEntry = new ZipEntry(newPath)
+          out.putNextEntry(zipEntry);
+          out.closeEntry();
+          f.listFiles.foreach {write(_, newPath)}
+        }
+      }
+
+      dir.listFiles.foreach {write(_, "")}
+    }
+    target
   }
-   */
-
-  /**
-   * Create a new zip by adding a file to an existing zip in a directory
-   * specified by the path.
-  def add(zipFile: ZipFile, file: File, path: String = ".") 
-    = add(zipFile, List(file), path)
-   */
 
   /**
    * Create a new zip by adding files to an existing zip in a directory
    * specified by the path.
-  def add(zipFile: ZipFile, files: List[File], path: String = "."): File = {
-    require(zipFile != null);
+   */
+  def add(zip: File, path: String, files: File*): File = {
+    require(zip != null);
     require(files != null && files.size > 0);
     require(path != null);
     // TODO research modifying a zip without explode/modify/zip/replace
 
-    if (!zipFile.exists(path))
-      throw new IllegalArgumentException(path + ", which serves as the base " +
-      "directory to which to add files, does not exist in the archive.");
-
     TempDir.use[File] {d =>
-      zipFile.explode(d);
+      new Zip(new ZipFile(zip)).explode(d);
       val target = new File(d, "/" + path);
       if (!target.exists)
         target.mkdirs();
@@ -137,12 +170,29 @@ object Zip {
         throw new IllegalArgumentException(path + " must refer to some directory "
         + "within the archive.");
 
-      if (f.isDirectory)
-        FileUtils.copyDirectoryToDirectory(f, target);
-      else 
-        FileUtils.copyFileToDirectory(f, target);
-      Zip.archive(d);
+      files.foreach {f =>
+        if (f.isDirectory)
+          FileUtils.copyDirectoryToDirectory(f, target);
+        else 
+          FileUtils.copyFileToDirectory(f, target);
+      }
+
+      val newZip = archive(zip, true, d)
+      newZip
     }
   }
-   */
+
+  /**
+  * Control structure for writing to a ZipOutputStream.
+  */
+  def write[T](zip: File)(f: (ZipOutputStream) => T): T = {
+    val out = new ZipOutputStream(new BufferedOutputStream(
+        new FileOutputStream(zip)));
+    try {
+      f(out);
+    } finally {
+      try {out.flush} catch { case e:Exception => {}}
+      try {out.close} catch { case e:Exception => {}}
+    }
+  }
 }

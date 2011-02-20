@@ -24,6 +24,8 @@ import org.apache.commons.io.FileUtils
 
 import org.specs._
 import org.specs.runner.JUnit4
+
+import org.beeherd.io.TempDir
         
 class ZipSpecTest extends JUnit4(ZipSpec)
 object ZipSpec extends Specification {
@@ -35,7 +37,7 @@ object ZipSpec extends Specification {
     "list the entries in a zip file" in {
       val entries = zip.entryNames;
       entries must haveSize(6);
-      entries.first must beEqual("dir1/");
+      entries.head must beEqual("dir1/");
       entries.last must beEqual("foo.txt");
     }
 
@@ -73,10 +75,75 @@ object ZipSpec extends Specification {
     "throw an IllegalArgumentException if the target directory exists but is not a directory" in {
     }
 
+  }
+
+  "The Zip object" should {
+    "explode a file (that is a zip) to some directory" in {
+      TempDir.use[Unit] {dir =>
+        Zip.explode(file, dir);
+        val f = new File(dir, "foo.txt");
+        f must exist;
+        f must beFile;
+        FileUtils.readFileToString(f) must beEqual("hi from foo\n");
+        new File(dir, "dir2") must beDirectory;
+      }
+    }
+
+    "create a zip from a list of files" in {
+      val base = new File(getClass.getResource("/base").getFile)
+      TempDir.use[Unit] {dir =>
+        val zip = Zip.archive(new File(dir, "hi.zip"), dir = base)
+        Zip.explode(zip, dir);
+        val f = new File(dir, "source1");
+        f must exist;
+        f must beFile;
+        // I'm trimming the length because vim automatically puts a newline at
+        // the end of a file.
+        val str = FileUtils.readFileToString(f).trim
+        str must beEqual("Marcel says");
+        new File(dir, "source2") must exist;
+      }
+    }
+
+    "accurately create directory structures in the zip" in {
+      val base = new File(getClass.getResource("/base2").getFile);
+      TempDir.use[Unit] {dir =>
+        val zip = Zip.archive(new File(dir, "hi.zip"), dir = base)
+        Zip.explode(zip, dir);
+        val f = new File(dir, "dir1/source1");
+        f must exist;
+        f must beFile;
+        // I'm trimming the length because vim automatically puts a newline at
+        // the end of a file.
+        val str = FileUtils.readFileToString(f).trim
+        str must beEqual("Marcel says");
+        new File(dir, "dir2/dir1/source2") must exist;
+      }
+    }
+
     "add a file at the root level of a zip" in {
     }
 
     "add a file into some directory within a zip" in {
+      val zip = new File(getClass.getResource("/a-zip.zip").getFile)
+      val file = new File(getClass.getResource("/base2/dir1/source1").getFile)
+
+      val copy = new File(zip.getParent, "a-copy.zip")
+      FileUtils.copyFile(zip, copy)
+      val newZip = Zip.add(copy, "targetDir", file);
+
+      TempDir.use[Unit] {dir =>
+        Zip.explode(newZip, dir);
+        val f = new File(dir, "targetDir/source1");
+        f must exist;
+        f must beFile;
+        // I'm trimming the length because vim automatically puts a newline at
+        // the end of a file.
+        val str = FileUtils.readFileToString(f).trim
+        str must beEqual("Marcel says");
+      }
+
+      FileUtils.deleteQuietly(copy)
     }
 
     "add a directory at the root level of a zip" in {
@@ -84,26 +151,6 @@ object ZipSpec extends Specification {
 
     "throw an IllegalArgumentException if the path supplied does not point to either the root level or some directory of the zip" in {
     }
-  }
 
-  "The Zip object" should {
-    "explode a file (that is a zip) to some directory" in {
-      val dir = File.createTempFile("zip-tst2", "dir");
-      dir.delete();
-      dir.mkdir();
-      try {
-        Zip.explode(file, dir);
-        val f = new File(dir, "foo.txt");
-        f must exist;
-        f must beFile;
-        FileUtils.readFileToString(f) must beEqual("hi from foo\n");
-        new File(dir, "dir2") must beDirectory;
-      } finally {
-        if (dir.isDirectory)
-          FileUtils.deleteDirectory(dir);
-        else
-          dir.delete();
-      }
-    }
   }
 }
