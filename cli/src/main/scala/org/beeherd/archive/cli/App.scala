@@ -50,7 +50,6 @@ object UpdateZip {
       val cmd = parser.parse(opts, args);
 
       val zip = new File(cmd.getOptionValue("z"));
-      println(zip.getAbsolutePath)
       val path = cmd.getOptionValue("p");
       val files = cmd.getOptionValues("f").map { new File(_) }
 
