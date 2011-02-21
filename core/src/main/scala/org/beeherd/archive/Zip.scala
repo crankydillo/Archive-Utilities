@@ -138,7 +138,7 @@ object Zip {
           }
           out.closeEntry();
         } else {
-          val newPath = path + "/" + f.getName + "/";
+          val newPath = path + f.getName + "/";
           val zipEntry = new ZipEntry(newPath)
           out.putNextEntry(zipEntry);
           out.closeEntry();
