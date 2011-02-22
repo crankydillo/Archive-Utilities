@@ -162,7 +162,7 @@ object Zip {
     // TODO research modifying a zip without explode/modify/zip/replace
 
     TempDir.use[File] {d =>
-      new Zip(new ZipFile(zip)).explode(d);
+      explode(zip, d);
       val target = new File(d, "/" + path);
       if (!target.exists)
         target.mkdirs();
