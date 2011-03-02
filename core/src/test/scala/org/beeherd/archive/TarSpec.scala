@@ -16,8 +16,13 @@
 */
 package org.beeherd.archive
 
+import java.io.File
+import java.util.regex.Pattern
+
 import org.specs._
 import org.specs.runner.JUnit4
+
+import org.apache.commons.io.FileUtils
 
 class TarSpecTest extends JUnit4(TarSpec)
 object TarSpec extends Specification {
@@ -38,5 +43,30 @@ object TarSpec extends Specification {
       entries must haveSize(4);
       entries.foreach {e => e must endWith(".txt")}
     }
+
+    "spit out the text of an entry" in {
+      // newline because windows/unix thing
+      tar.entryAsString("dir1/foo.txt") must beEqual("foo\n");
+    }
+
+    "explode a tar to some directory" in {
+      val dir = File.createTempFile("tar-tst", "dir");
+      dir.delete();
+      dir.mkdir();
+      try {
+        tar.explode(dir);
+        val f = new File(dir, "foo.txt");
+        f must exist;
+        f must beFile;
+        FileUtils.readFileToString(f) must beEqual("hi from foo\n");
+        new File(dir, "dir2") must beDirectory;
+      } finally {
+        if (dir.isDirectory)
+          FileUtils.deleteDirectory(dir);
+        else
+          dir.delete();
+      }
+    }
+
   }
 }

@@ -16,6 +16,112 @@
 */
 package org.beeherd.archive
 
-class Tar {
+import java.io.{BufferedOutputStream, File, FileInputStream, FileOutputStream}
+import java.util.regex.Pattern
 
+import org.apache.commons.io.IOUtils
+import org.apache.commons.vfs._
+
+class Tar(val file: File) extends Archive {
+  /**
+   * @inheritDoc
+   */
+  def entryNames: List[String] = {
+    val fsManager = VFS.getManager();
+    val tarFile = fsManager.resolveFile("tar:" + file.getAbsolutePath);
+
+    def fileObjNames(fileObj: FileObject): List[String] = {
+      // I'm going to try to make this look like a zip"
+      val path = toZipPath(fileObj)
+      fileObj.getType match {
+        case FileType.FOLDER => 
+        path +: fileObj.getChildren.flatMap {fileObjNames _}.toList
+        case FileType.FILE_OR_FOLDER => 
+        path +: fileObj.getChildren.flatMap {fileObjNames _}.toList
+        case _ => List(path)
+      }
+    }
+
+    tarFile.getChildren.flatMap {fileObjNames _}.toList
+  }
+
+  /**
+   * @inheritDoc
+   */
+  def entryAsString(name: String, encoding: String): String = {
+    if (name == null) 
+      throw new NullPointerException("The entry name may not be null.");
+
+    // Do I really need to do this?
+    val matches = entryNames(Pattern.compile(name));
+    if (matches.isEmpty)
+      throw new IllegalArgumentException("The entry name, " + name + 
+        " was not found.");
+    if (matches.size > 1)
+      throw new IllegalArgumentException("The entry name, " + name +
+        " matched more than 1 entry.");
+
+    val path = {
+      val tmp = matches(0);
+      "/" + (if (tmp.endsWith("/")) tmp.dropRight(1) else tmp);
+    }
+
+    val mgr = VFS.getManager();
+    val fileObj = mgr.resolveFile("tar:" + file.getAbsolutePath + "!" + path);
+    val in = fileObj.getContent.getInputStream;
+    try {
+      IOUtils.toString(in, encoding)
+    } finally {
+      try { in.close } catch { case e:Exception => /* TODO: Log */ e.printStackTrace}
+    }
+
+  }
+
+  /**
+   * @inheritDoc
+   */
+  def explode(dir: File): Unit = {
+    require(!dir.exists || dir.isDirectory);
+
+    if (!dir.exists)
+      dir.mkdirs();
+
+    val fsManager = VFS.getManager();
+    val tarFile = fsManager.resolveFile("tar:" + file.getAbsolutePath);
+
+    def writeFileObj(fileObj: FileObject): Unit = {
+      // I'm going to try to make this look like a zip"
+      val path = toZipPath(fileObj);
+      val newFile = new File(dir, path);
+      fileObj.getType match {
+        case FileType.FOLDER => newFile.mkdirs();
+        case FileType.FILE_OR_FOLDER => newFile.mkdirs();
+        case _ => {
+          val dir = newFile.getParentFile();
+          if (dir != null && !dir.exists)
+            dir.mkdirs();
+          newFile.createNewFile();
+          val out = new BufferedOutputStream(new FileOutputStream(newFile));
+          val in = fileObj.getContent.getInputStream;
+          try {
+            IOUtils.copy(in, out);
+          } finally {
+            try { in.close } catch { case e:Exception => /* TODO: Log */ }
+            try {out.close() } catch { case e:Exception => /* TODO: Log */}
+          }
+        }
+      }
+    }
+
+    tarFile.getChildren.foreach {writeFileObj _}
+  }
+
+  private def toZipPath(fileObj: FileObject): String = {
+    val path = fileObj.getName.getPath;
+    fileObj.getType match {
+      case FileType.FOLDER => (path.drop(1) + "/")
+      case FileType.FILE_OR_FOLDER => (path.drop(1) + "/")
+      case _ => path.drop(1)
+    }
+  }
 }
