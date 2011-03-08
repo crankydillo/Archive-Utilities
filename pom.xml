@@ -52,6 +52,6 @@ under the License.
   </repositories>
   <modules>
     <module>core</module>
-    <module>archive-cli</module>
+    <module>cli</module>
   </modules>
 </project>
