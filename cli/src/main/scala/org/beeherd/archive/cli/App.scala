@@ -22,23 +22,22 @@ import org.apache.commons.cli.{BasicParser, OptionGroup => OptGroup,
 Option => Opt, Options => Opts, OptionBuilder => OptBuilder, ParseException, 
 HelpFormatter, CommandLine}
 
-import org.beeherd.archive.Zip
+import org.beeherd.archive._
 
 /**
 * CLI for adding files to an existing zip.
 */
-object UpdateZip {
+object UpdateZip extends CLI {
   def main(args: Array[String]): Unit = {
     val opts = new Opts();
 
-    def addRequired(name: String, desc: String): Unit = {
-      val opt = new Opt(name, true, desc);
-      opt.setRequired(true);
-      opts.addOption(opt);
-    }
-
-    addRequired("z", "The zip to be updated");
-    addRequired("p", "The path to a directory within the zip to which the files will be added");
+    addRequired(
+      opts
+      , List(
+        ("z", "The zip to be updated")
+        , ("p", "The path to a directory within the zip to which the files will be added")
+      )
+    )
 
     val opt = new Opt("f", true, "The files to add.");
     opt.setRequired(true);
@@ -60,7 +59,48 @@ object UpdateZip {
     }
   }
 
-  private def usage(opts: Opts): Unit = {
+}
+
+object ExplodeArchive extends CLI {
+  def main(args: Array[String]): Unit = {
+    val opts = new Opts();
+
+    addRequired(
+      opts
+      , List(
+        ("f", "The file to be explode")
+        , ("d", "The path to the target directory")
+      )
+    )
+
+    val parser = new BasicParser();
+    try {
+      val cmd = parser.parse(opts, args);
+
+      val file = new File(cmd.getOptionValue("f"));
+      val dir = new File(cmd.getOptionValue("d"));
+
+      Archive.explode(file, dir);
+    } catch {
+      case pe: ParseException => usage(opts)
+      case e:Exception => e.printStackTrace
+    }
+  }
+}
+
+trait CLI {
+  def addRequired(
+    opts: Opts
+    , lst: List[(String, String)]
+  ): Unit = {
+    lst.foreach { case (name, desc) =>
+      val opt = new Opt(name, true, desc);
+      opt.setRequired(true);
+      opts.addOption(opt);
+    }
+  }
+
+  def usage(opts: Opts): Unit = {
     val formatter = new HelpFormatter();
     formatter.printHelp("UpdateZip", opts);
   }

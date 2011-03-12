@@ -106,9 +106,7 @@ under the License.
             <!--<argument>-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8001</argument>-->
             <argument>-classpath</argument>
             <classpath />
-            <!-- SpecsRunner runs all the *Spec.class -->
-            <argument>org.beeherd.zip.SpecsRunner</argument>
-            <!--<argument>org.beeherd.zip.CalculatorSpec</argument>-->
+            <argument>org.beeherd.archive.TarGzSpec</argument>
           </arguments>
         </configuration>
       </plugin>

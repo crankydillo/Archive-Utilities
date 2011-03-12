@@ -67,7 +67,9 @@ class Archive(file: File) extends Archived {
   /**
    * @inheritDoc
    */
-  def explode(dir: File): Unit = delegate.explode(dir);
+  def explode(dir: File): Unit = {
+    delegate.explode(dir);
+  }
 }
 
 object Archive {

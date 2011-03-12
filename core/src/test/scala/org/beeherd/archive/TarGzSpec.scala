@@ -59,7 +59,9 @@ object TarGzSpec extends Specification {
         f must exist;
         f must beFile;
         FileUtils.readFileToString(f) must beEqual("hi from foo\n");
-        new File(dir, "dir2") must beDirectory;
+        val dir2 = new File(dir, "dir2") 
+        dir2 must beDirectory;
+        new File(dir2, "bar.txt") must exist
       } finally {
         if (dir.isDirectory)
           FileUtils.deleteDirectory(dir);

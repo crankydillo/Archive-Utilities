@@ -77,6 +77,22 @@ under the License.
         </executions>
       </plugin>
 
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass>org.beeherd.weather.cli.App</mainClass>
+            </manifest>
+          </archive>
+          <descriptors>
+            <descriptor>src/main/assembly/bin.xml</descriptor>
+          </descriptors>
+        </configuration>
+      </plugin>
+
+
+
       <!-- The following will run your BDD tests.  Use mvn exec:exec -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>

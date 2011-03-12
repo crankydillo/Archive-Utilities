@@ -92,14 +92,19 @@ class VfsFacade(file: File, ftype: String) extends Archived {
       dir.mkdirs();
 
     val fsManager = VFS.getManager();
+
     val fileObj = fsManager.resolveFile(ftype + ":" + file.toURI.getPath);
 
     def writeFileObj(fileObj: FileObject): Unit = {
       // I'm going to try to make this look like a zip"
       val path = toZipPath(fileObj);
       val newFile = new File(dir, path);
+
       fileObj.getType match {
-        case FileType.FOLDER => newFile.mkdirs();
+        case FileType.FOLDER => {
+          newFile.mkdirs();
+          fileObj.getChildren.foreach {writeFileObj _}
+        }
         case FileType.FILE_OR_FOLDER => newFile.mkdirs();
         case _ => {
           val dir = newFile.getParentFile();

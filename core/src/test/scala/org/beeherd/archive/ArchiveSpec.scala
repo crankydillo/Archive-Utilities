@@ -82,7 +82,17 @@ object ArchiveSpec extends Specification {
         }
       }
 
-      "tar.gz" in {}
+      "tar.gz" in {
+        val file = new File(getClass.getResource("/foo.tar.gz").getFile);
+        TempDir.use[Unit] {dir =>
+          Archive.explode(file, dir);
+          val f = new File(dir, "foo.txt");
+          f must exist;
+          f must beFile;
+          FileUtils.readFileToString(f) must beEqual("hi from foo\n");
+          new File(dir, "dir2") must beDirectory;
+        }
+      }
 
       "tar" in {}
     }
