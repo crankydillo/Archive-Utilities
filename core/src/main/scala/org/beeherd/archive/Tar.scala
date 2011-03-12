@@ -18,7 +18,7 @@ package org.beeherd.archive
 
 import java.io.File
 
-class Tar(val file: File) extends Archive {
+class Tar(val file: File) extends Archived {
   private val delegate = new VfsFacade(file, "tar");
   /**
    * @inheritDoc

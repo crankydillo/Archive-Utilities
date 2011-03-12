@@ -30,7 +30,7 @@ import org.beeherd.io.TempDir
  *
  * @author scox
  */
-class Zip(val zipFile: ZipFile) extends Archive {
+class Zip(val zipFile: ZipFile) extends Archived {
   import scala.collection.JavaConversions._
 
   /**
