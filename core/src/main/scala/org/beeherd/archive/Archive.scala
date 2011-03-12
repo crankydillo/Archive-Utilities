@@ -18,35 +18,60 @@ package org.beeherd.archive
 
 import java.io.File
 import java.util.regex._
+import java.util.zip._
 
 /**
+ * An {@link Archived} implementation that guesses at what the archived
+ * implementation is.
  *
  * @author scox
  */
-trait Archive {
-  /**
-   * Find the entries matching the supplied pattern.
-   */
-  def entryNames(pattern: Pattern): List[String] = 
-    entryNames.filter {e => pattern.matcher(e).matches}
+class Archive(file: File) extends Archived {
+
+  require(file != null)
+  require(file.exists)
+  require(file.isFile)
+
+  private val delegate = {
+    val name = file.getName;
+    if (name.endsWith(".zip"))
+      new Zip(new ZipFile(file))
+    else if (name.endsWith(".tar.gz"))
+      new TarGz(file)
+    else if (name.endsWith(".tar"))
+      new Tar(file)
+    else
+      throw new IllegalArgumentException("Cannot determine what type of archive, " +
+      file.getAbsolutePath + ", is.  Determination is done by extension.  Currently, " +
+      "only .zip, .tar.gz, and .tar are supported.");
+  }
 
   /**
-   * List all the archive's entries.
+   * @inheritDoc
    */
-  def entryNames: List[String]
+  override def entryNames(pattern: Pattern): List[String] = 
+    delegate.entryNames(pattern)
 
   /**
-   * Return the contents of an entry as a string.
+   * @inheritDoc
+   */
+  def entryNames: List[String] = delegate.entryNames
+
+  /**
+   * @inheritDoc
    */
   def entryAsString(name: String, 
       encoding: String = Archive.DefaultEncoding): String
+    = delegate.entryAsString(name, encoding)
 
   /**
-   * Explode the archive into the given directory.
+   * @inheritDoc
    */
-  def explode(dir: File): Unit
+  def explode(dir: File): Unit = delegate.explode(dir);
 }
 
 object Archive {
   val DefaultEncoding = System.getProperty("file.encoding")
+
+  def explode(file: File, toDir: File): Unit = new Archive(file).explode(toDir);
 }
