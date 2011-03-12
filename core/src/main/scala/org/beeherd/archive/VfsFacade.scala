@@ -27,13 +27,13 @@ import org.apache.commons.vfs._
 *
 * @author scox
 */
-class VfsFacade(file: File, ftype: String) extends Archive {
+class VfsFacade(file: File, ftype: String) extends Archived {
   /**
    * @inheritDoc
    */
   def entryNames: List[String] = {
     val fsManager = VFS.getManager();
-    val fileObj = fsManager.resolveFile(ftype + ":" + file.getAbsolutePath);
+    val fileObj = fsManager.resolveFile(ftype + ":" + file.toURI.getPath);
 
     def fileObjNames(fileObj: FileObject): List[String] = {
       // I'm going to try to make this look like a zip"
@@ -72,7 +72,7 @@ class VfsFacade(file: File, ftype: String) extends Archive {
     }
 
     val mgr = VFS.getManager();
-    val fileObj = mgr.resolveFile(ftype + ":" + file.getAbsolutePath + "!" + path);
+    val fileObj = mgr.resolveFile(ftype + ":" + file.toURI.getPath + "!" + path);
     val in = fileObj.getContent.getInputStream;
     try {
       IOUtils.toString(in, encoding)
@@ -92,7 +92,7 @@ class VfsFacade(file: File, ftype: String) extends Archive {
       dir.mkdirs();
 
     val fsManager = VFS.getManager();
-    val fileObj = fsManager.resolveFile(ftype + ":" + file.getAbsolutePath);
+    val fileObj = fsManager.resolveFile(ftype + ":" + file.toURI.getPath);
 
     def writeFileObj(fileObj: FileObject): Unit = {
       // I'm going to try to make this look like a zip"
