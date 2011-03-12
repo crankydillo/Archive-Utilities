@@ -24,13 +24,13 @@ import org.specs.runner.JUnit4
 
 import org.apache.commons.io.FileUtils
 
-class TarSpecTest extends JUnit4(TarSpec)
-object TarSpec extends Specification {
-  val file = new File(getClass.getResource("/foo.tar").getFile);
-  val tar = new Tar(file);
+class TarGzSpecTest extends JUnit4(TarGzSpec)
+object TarGzSpec extends Specification {
+  val file = new File(getClass.getResource("/foo.tar.gz").getFile);
+  val tar = new TarGz(file);
 
-  "Tar" should {
-    "list the entries in a tar file" in {
+  "TarGz" should {
+    "list the entries in a tar.gz file" in {
       val entries = tar.entryNames;
       entries must haveSize(6);
       entries.head must beEqual("dir1/");
@@ -49,8 +49,8 @@ object TarSpec extends Specification {
       tar.entryAsString("dir1/foo.txt") must beEqual("foo\n");
     }
 
-    "explode a tar to some directory" in {
-      val dir = File.createTempFile("tar-tst", "dir");
+    "explode a tar.gz to some directory" in {
+      val dir = File.createTempFile("targz-tst", "dir");
       dir.delete();
       dir.mkdir();
       try {
@@ -67,6 +67,5 @@ object TarSpec extends Specification {
           dir.delete();
       }
     }
-
   }
 }

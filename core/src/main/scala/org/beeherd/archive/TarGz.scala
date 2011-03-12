@@ -18,8 +18,8 @@ package org.beeherd.archive
 
 import java.io.File
 
-class Tar(val file: File) extends Archive {
-  private val delegate = new VfsFacade(file, "tar");
+class TarGz(val file: File) extends Archive {
+  private val delegate = new VfsFacade(file, "tgz");
   /**
    * @inheritDoc
    */

@@ -33,14 +33,17 @@ import org.beeherd.io.TempDir
 class Zip(val zipFile: ZipFile) extends Archive {
   import scala.collection.JavaConversions._
 
-  def entryNames(pattern: Pattern): List[String] = 
-    entryNames.filter {e => pattern.matcher(e).matches}
-
+  /**
+   * @inheritDoc
+   */
   def entryNames: List[String] = zipFile.entries.map {_.getName}.toList
 
+  /**
+   * @inheritDoc
+   */
   def entryAsString(
     name: String
-    , encoding: String = Zip.DefaultEncoding
+    , encoding: String 
   ): String = {
     val entry = zipFile.getEntry(name);
     val in = zipFile.getInputStream(entry);
@@ -54,6 +57,7 @@ class Zip(val zipFile: ZipFile) extends Archive {
   def exists(path: String): Boolean = zipFile.entries.exists {_ == path}
 
   /**
+   * @inheritDoc
    * @throws IllegalArgumentException if dir exists and is not directory.
    */
   def explode(dir: File): Unit = {
@@ -84,8 +88,6 @@ class Zip(val zipFile: ZipFile) extends Archive {
 }
 
 object Zip {
-  val DefaultEncoding = System.getProperty("file.encoding");
-
   def use[T](file: File)(f: Zip => T): T = {
     require(file != null && file.isFile);
     val zipFile = new ZipFile(file);

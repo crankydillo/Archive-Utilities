@@ -27,7 +27,8 @@ trait Archive {
   /**
    * Find the entries matching the supplied pattern.
    */
-  def entryNames(pattern: Pattern): List[String]
+  def entryNames(pattern: Pattern): List[String] = 
+    entryNames.filter {e => pattern.matcher(e).matches}
 
   /**
    * List all the archive's entries.
@@ -37,10 +38,15 @@ trait Archive {
   /**
    * Return the contents of an entry as a string.
    */
-  def entryAsString(name: String, encoding: String): String
+  def entryAsString(name: String, 
+      encoding: String = Archive.DefaultEncoding): String
 
   /**
    * Explode the archive into the given directory.
    */
   def explode(dir: File): Unit
+}
+
+object Archive {
+  val DefaultEncoding = System.getProperty("file.encoding")
 }
