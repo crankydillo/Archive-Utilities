@@ -40,7 +40,7 @@ trait Archived {
    * Return the contents of an entry as a string.
    */
   def entryAsString(name: String, 
-      encoding: String = Archive.DefaultEncoding): String
+      encoding: String = Archive.DefaultEncoding): Option[String]
 
   /**
    * Explode the archive into the given directory.

@@ -50,7 +50,9 @@ object ZipSpec extends Specification {
 
     "spit out the text of an entry" in {
       // newline because windows/unix thing
-      zip.entryAsString("dir1/foo.txt") must beEqual("foo\n");
+      val txt = zip.entryAsString("dir1/foo.txt");
+      txt must beSomething;
+      txt.get must beEqual("foo\n");
     }
 
     "explode a zip to some directory" in {

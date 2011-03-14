@@ -61,7 +61,7 @@ class Archive(file: File) extends Archived {
    * @inheritDoc
    */
   def entryAsString(name: String, 
-      encoding: String = Archive.DefaultEncoding): String
+      encoding: String = Archive.DefaultEncoding): Option[String]
     = delegate.entryAsString(name, encoding)
 
   /**

@@ -16,23 +16,37 @@
 */
 package org.beeherd.archive
 
-import java.io.File
+import java.io._
+import java.util.zip.GZIPInputStream
+
+import org.apache.commons.compress.archivers.tar._
 
 class TarGz(val file: File) extends Archived {
-  private val delegate = new VfsFacade(file, "tgz");
-  /**
-   * @inheritDoc
-   */
-  def entryNames: List[String] = delegate.entryNames
 
   /**
    * @inheritDoc
    */
-  def entryAsString(name: String, encoding: String): String = 
-    delegate.entryAsString(name, encoding);
+  def entryNames: List[String] = use { _.entryNames }
 
   /**
    * @inheritDoc
    */
-  def explode(dir: File): Unit = delegate.explode(dir);
+  def entryAsString(name: String, encoding: String): Option[String] = 
+    use { _.entryAsString(name, encoding) }
+
+  /**
+   * @inheritDoc
+   */
+  def explode(dir: File): Unit = use { _.explode(dir) }
+
+  private def use[T](fn: (TarInputStreamArchive) => T): T = {
+    val in = new TarArchiveInputStream(new BufferedInputStream(
+      new GZIPInputStream(new FileInputStream(file))));
+    val streamArchive = new TarInputStreamArchive(in);
+    try {
+      fn(streamArchive)
+    } finally {
+      try { in.close } catch { case e:Exception => {} }
+    }
+  }
 }

@@ -46,7 +46,9 @@ object TarSpec extends Specification {
 
     "spit out the text of an entry" in {
       // newline because windows/unix thing
-      tar.entryAsString("dir1/foo.txt") must beEqual("foo\n");
+      val opt = tar.entryAsString("dir1/foo.txt");
+      opt must beSomething;
+      opt.get must beEqual("foo\n");
     }
 
     "explode a tar to some directory" in {

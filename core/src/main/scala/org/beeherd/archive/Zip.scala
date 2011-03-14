@@ -44,11 +44,15 @@ class Zip(val zipFile: ZipFile) extends Archived {
   def entryAsString(
     name: String
     , encoding: String 
-  ): String = {
+  ): Option[String] = {
     val entry = zipFile.getEntry(name);
+
+    if (entry == null)
+      return None
+
     val in = zipFile.getInputStream(entry);
     try {
-      IOUtils.toString(in, encoding)
+      Some(IOUtils.toString(in, encoding))
     } finally {
       try { in.close } catch { case e:Exception => /* TODO: Log */ e.printStackTrace}
     }

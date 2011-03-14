@@ -46,7 +46,9 @@ object TarGzSpec extends Specification {
 
     "spit out the text of an entry" in {
       // newline because windows/unix thing
-      tar.entryAsString("dir1/foo.txt") must beEqual("foo\n");
+      val txt = tar.entryAsString("dir1/foo.txt");
+      txt must beSomething;
+      txt.get must beEqual("foo\n");
     }
 
     "explode a tar.gz to some directory" in {

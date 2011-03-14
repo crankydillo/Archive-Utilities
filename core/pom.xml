@@ -35,9 +35,9 @@ under the License.
     </dependency>
 
     <dependency>
-      <groupId>commons-vfs</groupId>
-      <artifactId>commons-vfs</artifactId>
-      <version>1.0</version>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-compress</artifactId>
+      <version>1.1</version>
     </dependency>
 
     <dependency>
@@ -106,7 +106,7 @@ under the License.
             <!--<argument>-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8001</argument>-->
             <argument>-classpath</argument>
             <classpath />
-            <argument>org.beeherd.archive.TarGzSpec</argument>
+            <argument>org.beeherd.archive.SpecsRunner</argument>
           </arguments>
         </configuration>
       </plugin>
